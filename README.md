@@ -46,3 +46,25 @@ To clone the repository:
 ```sh
 git clone https://github.com/dignapatel0/RecipeManagementSystem.git
 ```
+## To Run This Project
+
+1. **Open Package Manager Console:**
+   - Navigate to **Tools** > **NuGet Package Manager** > **Package Manager Console**.
+
+2. **Run Database Migrations:**
+   - In the console, type:
+     ```
+     update-database
+     ```
+
+3. **Add Data to Database:**
+   - Go to **Tools** > **SQL Server Object Explorer** > **Database**.
+   - Add records to the following tables:
+     - **MealPlans**
+     - **Recipes**
+     - **Ingredients**
+     - **RecipeIngredients** (junction table for many-to-many relationship between Recipes and Ingredients)
+
+4. **Interact with API:**
+   - Use API requests to interact with the **MealPlans**, **Recipes**, **Ingredients**, and **RecipeIngredients** tables.
+
