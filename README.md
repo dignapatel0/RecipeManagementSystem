@@ -12,8 +12,12 @@ Recipe Management System is an application designed to help users manage recipes
 - **One-to-Many & Many-to-Many Relationships**
   - MealPlan → Recipes (One-to-Many): A MealPlan can have multiple Recipes, but each Recipe belongs to only one MealPlan.
   - Recipes ↔ Ingredients (Many-to-Many): A Recipe can have many Ingredients, and an Ingredient can be used in many Recipes. This is handled through the RecipeIngredients table.
-- **RESTful API**
-  - Supports Create, Read, Update, and Delete (CRUD) operations.
+- **RESTful API:**
+    - Supports Create, Read, Update, and Delete (CRUD) operations.
+    - **Link Recipe to Ingredient:** Links a specific ingredient to a recipe, associating the ingredient with the recipe in the `RecipeIngredients` table.
+    - **Unlink Recipe from Ingredient:** Unlinks a specific ingredient from a recipe, removing the association between them.
+    - **List Ingredients for Recipe:** Retrieves a list of all ingredients associated with a specific recipe.
+
 - **Data Validation**
   - Ensures input integrity with required fields and constraints.
 
