@@ -20,12 +20,12 @@ namespace PassionProject.Models
 
         // One Recipe belongs to one MealPlan
         [ForeignKey("MealPlans")]
-        public int MealPlanId { get; set; } 
+        public int MealPlanId { get; set; }
 
         public virtual MealPlan MealPlan { get; set; }
 
         // Many-to-Many relationship with Ingredients
-        
+
         public ICollection<RecipexIngredient> RecipexIngredients { get; set; }
 
     }
