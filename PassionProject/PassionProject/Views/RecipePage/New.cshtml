@@ -1,0 +1,131 @@
+﻿@model PassionProject.Models.RecipeDto
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add New Recipe</title>
+    <style>
+        /* Styles for the new recipe form */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .navigation a {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #2980b9;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .navigation a:hover {
+            background-color: #1c6391;
+        }
+
+        .form-container {
+            width: 50%;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .button {
+            padding: 10px 15px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #1c6391;
+            color: white;
+        }
+
+        .button.cancel {
+            background-color: #e74c3c;
+        }
+
+        .button.cancel:hover {
+            background-color: #c0392b;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Add New Recipe</h1>
+
+    <div class="form-container">
+        <form asp-action="Add" method="post">
+            <div class="form-group">
+                <label for="Name">Name:</label>
+                <input type="text" id="Name" name="Name" required />
+            </div>
+            <div class="form-group">
+                <label for="Cuisine">Cuisine:</label>
+                <input type="text" id="Cuisine" name="Cuisine" required />
+            </div>
+            <div class="form-group">
+                <label for="MealPlanId">Meal Plan:</label>
+                <select id="MealPlanId" name="MealPlanId" required>
+                    <!-- Populate this with Meal Plan options from your database -->
+                    <option value="">Select a Meal Plan</option>
+                    @foreach (var mealPlan in Model.MealPlans)
+                    {
+                        <option value="@mealPlan.MealPlanId">@mealPlan.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="navigation">
+                <input type="submit" value="Add Recipe" class="button" />
+                <a class="button" href="/RecipePage/List">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

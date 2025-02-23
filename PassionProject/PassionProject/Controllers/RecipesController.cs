@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PassionProject.Data;
+using PassionProject.Interfaces;
 using PassionProject.Models;
 
 
@@ -11,13 +10,14 @@ namespace PassionProject.Controllers
     [ApiController]
     public class RecipesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IRecipeService _recipeService;
 
-        // Dependency injection of database context
-        public RecipesController(ApplicationDbContext context)
+        // dependency injection of service interfaces
+        public RecipesController(IRecipeService recipeService)
         {
-            _context = context;
+            _recipeService = recipeService;
         }
+
 
         /// <summary>
         /// Returns a list of Recipes, each represented by a RecipeDto with their associated Meal Plan
@@ -36,25 +36,13 @@ namespace PassionProject.Controllers
         [HttpGet(template: "ListRecipes")]
         public async Task<ActionResult<IEnumerable<RecipeDto>>> ListRecipes()
         {
-            // Fetch (r)ecipes including their associated meal plan
-            List<Recipe> recipes = await _context.Recipes
-                .Include(r => r.MealPlan)
-                .ToListAsync();
-
-            // Create a list of RecipeDto
-            List<RecipeDto> recipeDtos = recipes.Select(r => new RecipeDto()
-            {
-                RecipeId = r.RecipeId,
-                Name = r.Name,
-                Cuisine = r.Cuisine,
-                MealPlanId = r.MealPlanId,
-                MealPlanName = r.MealPlan.Name
-            }).ToList();
-
-            // Return 200 OK with RecipeDtos
+            // empty list of data transfer object RecipeDto
+            IEnumerable<RecipeDto> recipeDtos = await _recipeService.ListRecipes();
+            // return 200 OK with RecipeDto
             return Ok(recipeDtos);
         }
 
+       
         /// <summary>
         /// Returns a single Recipe specified by its {id}, represented by a RecipeDto with its associated Meal Plan
         /// </summary>
@@ -73,31 +61,21 @@ namespace PassionProject.Controllers
         [HttpGet(template: "FindRecipe/{id}")]
         public async Task<ActionResult<RecipeDto>> FindRecipe(int id)
         {
-            // Fetch a single recipe by ID, including its associated meal plan
-            var recipe = await _context.Recipes
-                .Include(r => r.MealPlan)
-                .FirstOrDefaultAsync(r => r.RecipeId == id);
+            var recipeDto = await _recipeService.FindRecipe(id);
 
-            // If the recipe could not be found, return 404 Not Found
-            if (recipe == null)
+            // if the recipe could not be located, return 404 Not Found
+            if (recipeDto == null)
             {
                 return NotFound();
             }
-
-            // Create an instance of RecipeDto
-            RecipeDto recipeDto = new RecipeDto()
+            else
             {
-                RecipeId = recipe.RecipeId,
-                Name = recipe.Name,
-                Cuisine = recipe.Cuisine,
-                MealPlanId = recipe.MealPlanId,
-                MealPlanName = recipe.MealPlan.Name
-            };
+                return Ok(recipeDto);
+            }
 
-            // Return 200 OK with the RecipeDto
-            return Ok(recipeDto);
         }
 
+        
         /// <summary>
         /// Updates a Recipe
         /// </summary>
@@ -115,59 +93,29 @@ namespace PassionProject.Controllers
         /// Body: { "RecipeId": 1,"Name": "Chickpea Paneer Curry","Cuisine": "Indian","MealPlanId": 2, "MealPlanName": "High Protein Plan" }
         /// </example>
         [HttpPut(template: "UpdateRecipe/{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateRecipe(int id, RecipeDto recipeDto)
         {
-            // Ensure the provided ID in URL matches the RecipeId in the request body
+            // Ensure ID in the URL matches the ID in the request body
             if (id != recipeDto.RecipeId)
             {
                 return BadRequest("ID in the URL does not match the Recipe ID in the body.");
             }
 
-            // Attempt to find the associated MealPlan in the database
-            var mealPlan = await _context.MealPlans.FindAsync(recipeDto.MealPlanId);
+            ServiceResponse response = await _recipeService.UpdateRecipe(recipeDto);
 
-            if (mealPlan == null)
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                return NotFound();
+                return NotFound(response.Messages);
             }
-
-            // Create an instance of Recipe with updated data
-            Recipe recipe = new Recipe()
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
             {
-                RecipeId = recipeDto.RecipeId,
-                Name = recipeDto.Name,
-                Cuisine = recipeDto.Cuisine,
-                MealPlanId = recipeDto.MealPlanId,
-                MealPlan = mealPlan
-            };
-
-            // Flag the object as modified in the database
-            _context.Entry(recipe).State = EntityState.Modified;
-
-            try
-            {
-                // Save the changes to the database
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!RecipeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(500, response.Messages);
             }
 
             return NoContent();
         }
 
-        private bool RecipeExists(int id)
-        {
-            return _context.Recipes.Any(r => r.RecipeId == id);
-        }
 
         /// <summary>
         /// Adds a new Recipe to the system
@@ -186,34 +134,26 @@ namespace PassionProject.Controllers
         /// Body: { "RecipeId": 1,"Name": "Chickpea Paneer","Cuisine": "Indian","MealPlanId": 2, "MealPlanName": "High Protein Plan" }
         /// </example>
         [HttpPost(template: "AddRecipe")]
+        [Authorize]
         public async Task<ActionResult<Recipe>> AddRecipe(RecipeDto recipeDto)
         {
-            // Attempt to find associated MealPlan in DB by looking up MealPlanId
-            var mealPlan = await _context.MealPlans.FindAsync(recipeDto.MealPlanId);
-            if (mealPlan == null)
+            ServiceResponse response = await _recipeService.AddRecipe(recipeDto);
+
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                // 404 Not Found if the MealPlan does not exist
-                return NotFound();
+                return NotFound(response.Messages);
+            }
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages);
             }
 
-            // Create new Recipe entity using the data from RecipeDto
-            Recipe recipe = new Recipe()
-            {
-                Name = recipeDto.Name,
-                Cuisine = recipeDto.Cuisine,
-                MealPlanId = recipeDto.MealPlanId,
-                MealPlan = mealPlan
-            };
-
-            // SQL Equivalent: Insert into recipes (..) values (..)
-            _context.Recipes.Add(recipe);
-            await _context.SaveChangesAsync();
-
-            // Return 201 Created with Location header pointing to the newly created recipe
-            return CreatedAtAction("FindRecipe", new { id = recipe.RecipeId }, recipeDto);
+            // Returns 201 Created with Location header
+            return Created($"api/Recipes/FindRecipe/{response.CreatedId}", recipeDto);
         
         }
 
+        
         /// <summary>
         /// Deletes a Recipe by ID
         /// </summary>
@@ -226,33 +166,46 @@ namespace PassionProject.Controllers
         /// <example>
         /// GET: api/Recipes/DeleteRecipes/7
         /// </example>
-        [HttpDelete("DeleteRecipe/{id}")]
+        [HttpDelete(template: "DeleteRecipe/{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteRecipe(int id)
         {
-            // Find the recipe by ID
-            var recipe = await _context.Recipes.FindAsync(id);
+            ServiceResponse response = await _recipeService.DeleteRecipe(id);
 
-            if (recipe == null)
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
                 return NotFound();
             }
-
-            _context.Recipes.Remove(recipe);
-            await _context.SaveChangesAsync();
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages);
+            }
 
             return NoContent();
         }
 
-        /// <summary>
-        /// Checks if a recipe exists in the database
-        /// </summary>
-        /// <param name="id">The ID of the recipe</param>
-        /// <returns>True if recipe exists, otherwise false</returns>
 
-        private bool RecipeExist(int id)
+        /// <summary>
+        /// Returns a list of recipes associated with a specific MealPlan using its {mealPlanId}.
+        /// </summary>
+        /// <param name="mealPlanId">The ID of the MealPlan.</param>
+        /// <returns>
+        /// 200 OK: A list of recipes in the format [{RecipeDto}, {RecipeDto}, ...]
+        /// 404 Not Found: If no recipes are found for the given MealPlan ID.
+        /// </returns>
+        /// <example>
+        /// GET: api/Recipes/ListRecipesForMealPlan/3 -> [{RecipeDto}, {RecipeDto}, ...]
+        /// </example>
+        [HttpGet(template: "ListRecipesForMealPlan/{mealPlanId}")]
+        public async Task<IActionResult> ListRecipesForMealPlan(int mealPlanId)
         {
-            return _context.Recipes.Any(e => e.RecipeId == id);
+            // Call the service to get the list of RecipeDtos
+            IEnumerable<RecipeDto> recipeDtos = await _recipeService.ListRecipesForMealPlan(mealPlanId);
+
+            // Return 200 OK with the list of RecipeDtos
+            return Ok(recipeDtos);
         }
+
 
     }
 }

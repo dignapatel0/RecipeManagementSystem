@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PassionProject.Models
@@ -11,6 +12,11 @@ namespace PassionProject.Models
         public string Name { get; set; }
 
         public string Cuisine { get; set; }
+
+        /*
+        public IEnumerable<IngredientDto> Ingredients { get; set; } // List of ingredients
+        public IEnumerable<IngredientDto> AllIngredients { get; set; } // List of all ingredients for dropdown
+        */
 
         // One Recipe belongs to one MealPlan
         [ForeignKey("MealPlans")]
@@ -31,5 +37,7 @@ namespace PassionProject.Models
         public string Cuisine { get; set; }
         public int MealPlanId { get; set; }
         public string MealPlanName { get; set; }
+
+        public IEnumerable<MealPlanDto> MealPlans { get; set; }
     }
 }

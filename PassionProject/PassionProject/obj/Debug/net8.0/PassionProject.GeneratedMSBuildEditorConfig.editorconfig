@@ -30,6 +30,66 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/IngredientPage/ConfirmDelete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5ncmVkaWVudFBhZ2VcQ29uZmlybURlbGV0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/IngredientPage/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5ncmVkaWVudFBhZ2VcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/IngredientPage/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5ncmVkaWVudFBhZ2VcRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/IngredientPage/List.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5ncmVkaWVudFBhZ2VcTGlzdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/IngredientPage/New.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW5ncmVkaWVudFBhZ2VcTmV3LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/MealPlanPage/ConfirmDelete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVhbFBsYW5QYWdlXENvbmZpcm1EZWxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/MealPlanPage/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVhbFBsYW5QYWdlXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/MealPlanPage/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVhbFBsYW5QYWdlXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/MealPlanPage/List.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVhbFBsYW5QYWdlXExpc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/MealPlanPage/New.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWVhbFBsYW5QYWdlXE5ldy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/RecipePage/ConfirmDelete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjaXBlUGFnZVxDb25maXJtRGVsZXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/RecipePage/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjaXBlUGFnZVxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/RecipePage/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjaXBlUGFnZVxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/RecipePage/List.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjaXBlUGFnZVxMaXN0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/digna/source/repos/PassionProject/PassionProject/Views/RecipePage/New.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjaXBlUGFnZVxOZXcuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/digna/source/repos/PassionProject/PassionProject/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 

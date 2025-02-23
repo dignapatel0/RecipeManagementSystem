@@ -1,0 +1,122 @@
+﻿@model PassionProject.Models.RecipeDto
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Recipe</title>
+    <style>
+        /* Styles for the edit recipe form */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .button {
+            padding: 10px 15px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .button.update {
+            background-color: #2980b9;
+        }
+
+        .button.update:hover {
+            background-color: #1c6391;
+            color: white;
+        }
+
+        .button.cancel {
+            background-color: #e74c3c;
+        }
+
+        .button.cancel:hover {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Edit Recipe</h1>
+
+    <div class="form-container">
+        <form asp-action="Update" asp-route-id="@Model.RecipeId" method="post">
+            <input type="hidden" asp-for="RecipeId" />
+
+            <div class="form-group">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" required />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Cuisine"></label>
+                <input asp-for="Cuisine" required />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="MealPlanId"></label>
+                <select asp-for="MealPlanId" required>
+                    <option value="">Select a Meal Plan</option>
+                    @foreach (var mealPlan in Model.MealPlans)
+                    {
+                        <option value="@mealPlan.MealPlanId">@mealPlan.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="navigation">
+                <button type="submit" class="button update">Update</button>
+                <a class="button cancel" href="/RecipePage/List">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

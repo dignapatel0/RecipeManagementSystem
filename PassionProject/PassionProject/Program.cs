@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PassionProject.Data;
+using PassionProject.Interfaces;
+using PassionProject.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -16,7 +17,16 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Associate service interfaces with their implementations
+builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddScoped<IMealPlanService, MealPlanService>();
+
+
 
 var app = builder.Build();
 

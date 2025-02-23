@@ -19,6 +19,6 @@ namespace PassionProject.Models
         public decimal Quantity { get; set; } // Quantity of the ingredient used in the recipe
 
         public string Unit { get; set; } // Measurement unit (e.g., grams, cups)
-
+        public int Id { get; internal set; }
     }
 }

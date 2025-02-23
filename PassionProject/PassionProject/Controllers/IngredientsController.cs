@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PassionProject.Data;
+using PassionProject.Interfaces;
 using PassionProject.Models;
+using PassionProject.Services;
 using static PassionProject.Models.Ingredient;
 
 namespace PassionProject.Controllers
@@ -11,12 +14,11 @@ namespace PassionProject.Controllers
     [ApiController]
     public class IngredientsController : ControllerBase
     {
+        private readonly IIngredientService _ingredientService;
 
-        private readonly ApplicationDbContext _context;
-
-        public IngredientsController(ApplicationDbContext context)
+        public IngredientsController(IIngredientService ingredientService)
         {
-            _context = context;
+            _ingredientService = ingredientService;
         }
 
         /// <summary>
@@ -30,21 +32,15 @@ namespace PassionProject.Controllers
         ///  {"IngredientId":2, "Name":"Avocado", "Unit":"grams", "CaloriesPerUnit":160}
         /// ]
         /// </example>
-        [HttpGet("ListIngredients")]
+        [HttpGet(template: "ListIngredients")]
         public async Task<ActionResult<IEnumerable<IngredientDto>>> ListIngredients()
         {
-            List<Ingredient> ingredients = await _context.Ingredients.ToListAsync();
-
-            List<IngredientDto> ingredientDtos = ingredients.Select(i => new IngredientDto
-            {
-                IngredientId = i.IngredientId,
-                Name = i.Name,
-                Unit = i.Unit,
-                CaloriesPerUnit = i.CaloriesPerUnit
-            }).ToList();
-
+            // empty list of data transfer object IngredientDto
+            IEnumerable<IngredientDto> ingredientDtos = await _ingredientService.ListIngredients();
+            // return 200 OK with IngredientDto
             return Ok(ingredientDtos);
         }
+
 
         /// <summary>
         /// Returns a single ingredient by ID.
@@ -55,25 +51,17 @@ namespace PassionProject.Controllers
         /// GET: api/Ingredients/FindIngredient/1 ->
         /// {"IngredientId":1, "Name":"Chicken Breast", "Unit":"grams", "CaloriesPerUnit":165}
         /// </example>
-        [HttpGet("FindIngredient/{id}")]
+        [HttpGet(template: "FindIngredient/{id}")]
         public async Task<ActionResult<IngredientDto>> FindIngredient(int id)
         {
-            var ingredient = await _context.Ingredients.FindAsync(id);
+            var ingredient = await _ingredientService.FindIngredient(id);
 
+            // if the ingredient could not be located, return 404 Not Found
             if (ingredient == null)
             {
                 return NotFound();
             }
-
-            IngredientDto ingredientDto = new IngredientDto
-            {
-                IngredientId = ingredient.IngredientId,
-                Name = ingredient.Name,
-                Unit = ingredient.Unit,
-                CaloriesPerUnit = ingredient.CaloriesPerUnit
-            };
-
-            return Ok(ingredientDto);
+            return Ok(ingredient);
         }
 
         /// <summary>
@@ -86,50 +74,32 @@ namespace PassionProject.Controllers
         /// PUT: api/Ingredients/UpdateIngredient/1
         /// Body: { "IngredientId": 1, "Name": "Chicken Thigh", "Unit": "grams", "CaloriesPerUnit": 175 }
         /// </example>
-        [HttpPut("UpdateIngredient/{id}")]
+        [HttpPut(template: "UpdateIngredient/{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateIngredient(int id, IngredientDto ingredientDto)
         {
+            // Ensure the ID in the URL matches the ID in the request body
             if (id != ingredientDto.IngredientId)
             {
                 return BadRequest("ID in the URL does not match the Ingredient ID in the body.");
             }
 
-            var ingredient = await _context.Ingredients.FindAsync(id);
-            if (ingredient == null)
+            // Call the service to update the ingredient
+            ServiceResponse response = await _ingredientService.UpdateIngredient(ingredientDto);
+
+            // Check the status of the response to determine the appropriate action
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                return NotFound();
+                return NotFound(response.Messages); // Return 404 if the ingredient was not found
+            }
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages); // Return 500 if there was an error
             }
 
-            // Update fields
-            ingredient.Name = ingredientDto.Name;
-            ingredient.Unit = ingredientDto.Unit;
-            ingredient.CaloriesPerUnit = ingredientDto.CaloriesPerUnit;
-
-            _context.Entry(ingredient).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!IngredientExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return NoContent(); // Return 204 No Content on successful update
         }
 
-        private bool IngredientExists(int id)
-        {
-            throw new NotImplementedException();
-        }
 
         /// <summary>
         /// Adds a new ingredient to the system.
@@ -140,21 +110,27 @@ namespace PassionProject.Controllers
         /// POST: api/Ingredients/AddIngredient ->
         /// { "IngredientId": 9, "Name": "Broccoli", "Unit": "grams", "CaloriesPerUnit": 55 }
         /// </example>
-        [HttpPost("AddIngredient")]
-        public async Task<ActionResult<Ingredient>> AddIngredient(IngredientDto ingredientDto)
+        [HttpPost(template: "AddIngredient")]
+        [Authorize]
+        public async Task<ActionResult<IngredientDto>> AddIngredient(IngredientDto ingredientDto)
         {
-            Ingredient ingredient = new Ingredient
+            // Call the service to add the ingredient
+            ServiceResponse response = await _ingredientService.AddIngredient(ingredientDto);
+
+            // Check the status of the response to determine the appropriate action
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                Name = ingredientDto.Name,
-                Unit = ingredientDto.Unit,
-                CaloriesPerUnit = ingredientDto.CaloriesPerUnit
-            };
+                return NotFound(response.Messages); // Return 404 if the associated data was not found
+            }
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages); // Return 500 if there was an error
+            }
 
-            _context.Ingredients.Add(ingredient);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("FindIngredient", new { id = ingredient.IngredientId }, ingredientDto);
+            // Return 201 Created with the location of the new ingredient
+            return Created($"api/Ingredients/FindIngredient/{response.CreatedId}", ingredientDto);
         }
+
 
         /// <summary>
         /// Deletes an ingredient by ID.
@@ -164,32 +140,55 @@ namespace PassionProject.Controllers
         /// <example>
         /// DELETE: api/Ingredients/DeleteIngredient/1
         /// </example>
-        [HttpDelete("DeleteIngredient/{id}")]
+        [HttpDelete(template: "DeleteIngredient/{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteIngredient(int id)
         {
-            var ingredient = await _context.Ingredients.FindAsync(id);
+            // Call the service to delete the ingredient by ID
+            ServiceResponse response = await _ingredientService.DeleteIngredient(id);
 
-            if (ingredient == null)
+            // Check the status of the response to determine the appropriate action
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                return NotFound();
+                return NotFound(); // Return 404 if the ingredient was not found
+            }
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages); // Return 500 if there was an error
             }
 
-            _context.Ingredients.Remove(ingredient);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NoContent(); // Return 204 No Content if the deletion was successful
         }
 
-        /// <summary>
-        /// Checks if an ingredient exists in the database.
-        /// </summary>
-        /// <param name="id">The ID of the ingredient.</param>
-        /// <returns>True if exists, otherwise false.</returns>
-        private bool IngredientExist(int id)
+        /*
+        // POST IngredientPage/LinkToRecipe
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> LinkToRecipe([FromForm] int recipeId, [FromForm] int ingredientId)
         {
-            return _context.Ingredients.Any(e => e.IngredientId == id);
+            await _ingredientService.LinkIngredientToRecipe(ingredientId, recipeId);
+            return RedirectToAction("Details", new { id = recipeId });
         }
 
+        // POST IngredientPage/UnlinkFromRecipe
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> UnlinkFromRecipe([FromForm] int recipeId, [FromForm] int ingredientId)
+        {
+            await _ingredientService.UnlinkIngredientFromRecipe(ingredientId, recipeId);
+            return RedirectToAction("Details", new { id = recipeId });
+        }
+
+        // Method to get all ingredients for dropdown
+        public async Task<IActionResult> GetAllIngredients(int id)
+        {
+            // empty list of data transfer object IngredientDto
+            IEnumerable<IngredientDto> IngredientDto = await _ingredientService.GetAllIngredients(id);
+            // return 200 OK with IngredientDto
+            return Ok(IngredientDto);
+        }
+        */
+        /*
         /// <summary>
         /// Returns a list of ingredients associated with a specific recipe using its {id}.
         /// </summary>
@@ -201,28 +200,15 @@ namespace PassionProject.Controllers
         /// <example>
         /// GET: api/Ingredients/ListIngredientsForRecipe/5 -> [{IngredientDto}, {IngredientDto}, ...]
         /// </example>
-        [HttpGet("ListIngredientsForRecipe/{recipeId}")]
+        [HttpGet(template: "ListIngredientsForRecipe/{recipeId}")]
+
         public async Task<IActionResult> ListIngredientsForRecipe(int recipeId)
         {
-            // Get ingredients related to the specified recipe ID
-            var ingredients = await _context.RecipexIngredients
-                .Where(ri => ri.RecipeId == recipeId) // Filter by RecipeId
-                .Select(ri => new IngredientDto
-                {
-                    IngredientId = ri.Ingredient.IngredientId,
-                    Name = ri.Ingredient.Name,
-                    Unit = ri.Unit, // Quantity unit stored in RecipexIngredient
-                    CaloriesPerUnit = ri.Ingredient.CaloriesPerUnit
-                })
-                .ToListAsync();
-
-            // Check if any ingredients were found
+            var ingredients = await _ingredientService.ListIngredientsForRecipe(recipeId);
             if (!ingredients.Any())
             {
                 return NotFound($"No ingredients found for recipe with ID {recipeId}.");
             }
-
-            // Return 200 OK with list of ingredients
             return Ok(ingredients);
         }
 
@@ -309,7 +295,7 @@ namespace PassionProject.Controllers
 
             return NoContent();  // 204 No Content (Successful, but no response body)
         }
-
+        */
 
     }
 }

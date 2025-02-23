@@ -9,13 +9,13 @@
     "Parameters": [
       {
         "Name": "ingredientDto",
-        "Type": "PassionProject.Models.Ingredient\u002BIngredientDto",
+        "Type": "PassionProject.Models.IngredientDto",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "PassionProject.Models.Ingredient",
+        "Type": "PassionProject.Models.IngredientDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -57,7 +57,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PassionProject.Models.Ingredient\u002BIngredientDto",
+        "Type": "PassionProject.Models.IngredientDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -66,37 +66,6 @@
         "StatusCode": 200
       }
     ]
-  },
-  {
-    "ContainingType": "PassionProject.Controllers.IngredientsController",
-    "Method": "Link",
-    "RelativePath": "api/Ingredients/Link",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "recipeId",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "ingredientId",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "quantity",
-        "Type": "System.Decimal",
-        "IsRequired": false
-      },
-      {
-        "Name": "unit",
-        "Type": "System.String",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
   },
   {
     "ContainingType": "PassionProject.Controllers.IngredientsController",
@@ -108,7 +77,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[PassionProject.Models.Ingredient\u002BIngredientDto, PassionProject, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[PassionProject.Models.IngredientDto, PassionProject, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -117,43 +86,6 @@
         "StatusCode": 200
       }
     ]
-  },
-  {
-    "ContainingType": "PassionProject.Controllers.IngredientsController",
-    "Method": "ListIngredientsForRecipe",
-    "RelativePath": "api/Ingredients/ListIngredientsForRecipe/{recipeId}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "recipeId",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PassionProject.Controllers.IngredientsController",
-    "Method": "Unlink",
-    "RelativePath": "api/Ingredients/Unlink",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "recipeId",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "ingredientId",
-        "Type": "System.Int32",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
   },
   {
     "ContainingType": "PassionProject.Controllers.IngredientsController",
@@ -170,7 +102,7 @@
       },
       {
         "Name": "ingredientDto",
-        "Type": "PassionProject.Models.Ingredient\u002BIngredientDto",
+        "Type": "PassionProject.Models.IngredientDto",
         "IsRequired": true
       }
     ],
@@ -372,6 +304,22 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "PassionProject.Controllers.RecipesController",
+    "Method": "ListRecipesForMealPlan",
+    "RelativePath": "api/Recipes/ListRecipesForMealPlan/{mealPlanId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "mealPlanId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "PassionProject.Controllers.RecipesController",

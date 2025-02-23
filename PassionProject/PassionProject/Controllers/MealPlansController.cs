@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PassionProject.Data;
+using PassionProject.Interfaces;
 using PassionProject.Models;
 
 namespace PassionProject.Controllers
@@ -11,12 +13,13 @@ namespace PassionProject.Controllers
     public class MealPlansController : ControllerBase
     {
 
-        private readonly ApplicationDbContext _context;
+        private readonly IMealPlanService _mealPlanService;
 
-        public MealPlansController(ApplicationDbContext context)
+        public MealPlansController(IMealPlanService mealPlanService)
         {
-            _context = context;
+            _mealPlanService = mealPlanService;
         }
+
 
         /// <summary>
         /// Returns a list of Meal Plans
@@ -29,21 +32,16 @@ namespace PassionProject.Controllers
         ///   {"MealPlanId":2,"Name":"High Protein Plan","Date":"2025-02-05"}
         /// ]
         /// </example>
-        [HttpGet("ListMealPlans")]
+        [HttpGet(template: "ListMealPlans")]
         public async Task<ActionResult<IEnumerable<MealPlanDto>>> ListMealPlans()
         {
-            var mealPlans = await _context.MealPlans.ToListAsync();
+            // Get the list of meal plans from the service
+            IEnumerable<MealPlanDto> mealPlanDtos = await _mealPlanService.ListMealPlans();
 
-            // Create a list of MealPlanDto
-            var mealPlanDtos = mealPlans.Select(mp => new MealPlanDto
-            {
-                MealPlanId = mp.MealPlanId,
-                Name = mp.Name,
-                Date = mp.Date
-            }).ToList();
-
+            // Return 200 OK with the list of meal plans
             return Ok(mealPlanDtos);
         }
+
 
         /// <summary>
         /// Returns a single Meal Plan by ID
@@ -54,25 +52,20 @@ namespace PassionProject.Controllers
         /// GET: api/MealPlans/FindMealPlan/1
         /// {"MealPlanId":1,"Name":"Weight Loss Plan","Date":"2025-02-01"}
         /// </example>
-        [HttpGet("FindMealPlan/{id}")]
+        [HttpGet(template: "FindMealPlan/{id}")]
         public async Task<ActionResult<MealPlanDto>> FindMealPlan(int id)
         {
-            var mealPlan = await _context.MealPlans.FindAsync(id);
+            var mealPlan = await _mealPlanService.FindMealPlan(id);
 
+            // If the meal plan could not be located, return 404 Not Found
             if (mealPlan == null)
             {
                 return NotFound();
             }
 
-            var mealPlanDto = new MealPlanDto
-            {
-                MealPlanId = mealPlan.MealPlanId,
-                Name = mealPlan.Name,
-                Date = mealPlan.Date
-            };
-
-            return Ok(mealPlanDto);
+            return Ok(mealPlan);
         }
+
 
         /// <summary>
         /// Updates a Meal Plan
@@ -84,48 +77,32 @@ namespace PassionProject.Controllers
         /// PUT: api/MealPlans/UpdateMealPlan/1
         /// Body: { "MealPlanId": 1, "Name": "Diet Plan", "Date": "2025-02-02" }
         /// </example>
-        [HttpPut("UpdateMealPlan/{id}")]
+        [HttpPut(template: "UpdateMealPlan/{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateMealPlan(int id, MealPlanDto mealPlanDto)
         {
+            // Ensure the ID in the URL matches the ID in the request body
             if (id != mealPlanDto.MealPlanId)
             {
-                return BadRequest("ID mismatch");
+                return BadRequest("ID in the URL does not match the Meal Plan ID in the body.");
             }
 
-            var mealPlan = await _context.MealPlans.FindAsync(id);
-            if (mealPlan == null)
+            // Call the service to update the meal plan
+            ServiceResponse response = await _mealPlanService.UpdateMealPlan(mealPlanDto);
+
+            // Check the status of the response to determine the appropriate action
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                return NotFound();
+                return NotFound(response.Messages); // Return 404 if the meal plan was not found
             }
-
-            mealPlan.Name = mealPlanDto.Name;
-            mealPlan.Date = mealPlanDto.Date;
-
-            _context.Entry(mealPlan).State = EntityState.Modified;
-
-            try
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MealPlanExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(500, response.Messages); // Return 500 if there was an error
             }
 
-            return NoContent();
+            return NoContent(); // Return 204 No Content on successful update
         }
 
-        private bool MealPlanExists(int id)
-        {
-            throw new NotImplementedException();
-        }
 
         /// <summary>
         /// Adds a new Meal Plan
@@ -136,19 +113,25 @@ namespace PassionProject.Controllers
         /// POST: api/MealPlans/AddMealPlan
         /// Body: { "Name": "Diet Plan", "Date": "2025-02-20" }
         /// </example>
-        [HttpPost("AddMealPlan")]
+        [HttpPost(template: "AddMealPlan")]
+        [Authorize]
         public async Task<ActionResult<MealPlan>> AddMealPlan(MealPlanDto mealPlanDto)
         {
-            MealPlan mealPlan = new MealPlan
+            // Call the service to add the meal plan
+            ServiceResponse response = await _mealPlanService.AddMealPlan(mealPlanDto);
+
+            // Check the status of the response to determine the appropriate action
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                Name = mealPlanDto.Name,
-                Date = mealPlanDto.Date
-            };
+                return NotFound(response.Messages); // Return 404 if the associated data was not found
+            }
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages); // Return 500 if there was an error
+            }
 
-            _context.MealPlans.Add(mealPlan);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("FindMealPlan", new { id = mealPlan.MealPlanId }, mealPlanDto);
+            // Return 201 Created with the location of the new meal plan
+            return Created($"api/MealPlans/FindMealPlan/{response.CreatedId}", mealPlanDto);
         }
 
         /// <summary>
@@ -159,28 +142,24 @@ namespace PassionProject.Controllers
         /// <example>
         /// DELETE: api/MealPlans/DeleteMealPlan/1
         /// </example>
-        [HttpDelete("DeleteMealPlan/{id}")]
+        [HttpDelete(template: "DeleteMealPlan/{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteMealPlan(int id)
         {
-            var mealPlan = await _context.MealPlans.FindAsync(id);
+            // Call the service to delete the meal plan by ID
+            ServiceResponse response = await _mealPlanService.DeleteMealPlan(id);
 
-            if (mealPlan == null)
+            // Check the status of the response to determine the appropriate action
+            if (response.Status == ServiceResponse.ServiceStatus.NotFound)
             {
-                return NotFound();
+                return NotFound(); // Return 404 if the meal plan was not found
+            }
+            else if (response.Status == ServiceResponse.ServiceStatus.Error)
+            {
+                return StatusCode(500, response.Messages); // Return 500 if there was an error
             }
 
-            _context.MealPlans.Remove(mealPlan);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Checks if a Meal Plan exists
-        /// </summary>
-        private bool MealPlanExist(int id)
-        {
-            return _context.MealPlans.Any(mp => mp.MealPlanId == id);
+            return NoContent(); // Return 204 No Content if the deletion was successful
         }
     }
 }
